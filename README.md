@@ -9,6 +9,7 @@ A comprehensive web-based security testing tool designed to simulate bot attacks
 - Test account creation security against rapid bot account generation
 - Validate follower boosting detection mechanisms
 - Assess comment spam and fake engagement filtering
+- **NEW:** Test for fake likes and views detection
 - Identify vulnerabilities in bot detection systems
 - Strengthen platform security before production deployment
 
@@ -23,19 +24,22 @@ This tool is **strictly for authorized security testing and penetration testing 
 - **Fake Account Generation** - Creates realistic bot accounts with randomized data
 - **Follower Boosting Simulation** - Automates following behavior across multiple accounts
 - **Comment Spam Attacks** - Tests comment filtering and spam detection
+- **Likes Boost Attacks** - **NEW:** Simulates mass liking of posts/content
+- **Views Boost Attacks** - **NEW:** Simulates mass viewing of videos/content
 - **Real-Time Logging** - Live dashboard showing all bot activities
 - **Account Management** - Download and manage generated test accounts
 
-### Advanced Anti-Detection & Universal Features (New)
+### Advanced Anti-Detection & Universal Features
 
-- **Universal Compatibility:** Refactored logic using dynamic and attribute-based selectors to work across different social media platforms (e.g., TikTok, Instagram, Twitter, Facebook clones).
+- **Universal Compatibility:** Refactored logic using dynamic and attribute-based selectors to work across different social media platforms.
+- **Multi-Platform Support:** **NEW:** Targeted support for **TikTok, Instagram, Twitter/X, Facebook, and Telegram** clones.
+- **Link-Based Operation:** **NEW:** All engagement attacks (Likes, Views, Comments) require only the content link, making operation simple and professional.
 - **Proxy Support:** Added an input field to route traffic through a proxy (HTTP/SOCKS) to simulate distributed attacks and bypass IP-based rate limiting.
 - **Enhanced Human Mimicry:** More sophisticated randomization of typing speeds, mouse movements, scrolling, and dynamic user agent rotation to evade advanced bot detection.
-- **Robust Login Logic:** Improved generic login function to handle various form structures.
 
 ## System Requirements
 
-- **Node.js** 14+
+- **Node.js** 18+
 - **npm** or **yarn** package manager
 - **Chromium/Chrome** browser (auto-installed by Playwright)
 - **4GB RAM** minimum
@@ -96,36 +100,22 @@ Open your browser and navigate to `http://localhost:5173`
 
 ### 2. Configure Target App
 
-1. Enter your app's signup/login page URL in the **Target App URL** field
-2. **(New)** Optionally, enter a proxy server address (e.g., `http://user:pass@host:port`) in the **Proxy Server** field for distributed testing.
+1. **Select Platform:** Use the new dropdown to select the platform you are testing (e.g., TikTok, Instagram).
+2. Enter your app's signup/login page URL in the **Target App URL** field (only required for account generation and follower boost login).
+3. **(Optional)** Enter a proxy server address (e.g., `http://user:pass@host:port`) in the **Proxy Server** field for distributed testing.
 
-### 3. Generate Fake Accounts
+### 3. Launch Attacks
 
-1. Click the "Generate Accounts" tab
-2. Set the number of accounts to create (1-100)
-3. Click "Generate Accounts" button
-4. Monitor the live logs for progress
-5. Accounts will appear in the Generated Accounts section
+- **Generate Accounts:** Use the "Generate Accounts" tab to create test accounts.
+- **Follower Boost:** Use the "Followers" tab with a target username.
+- **Likes Boost:** Use the "Likes" tab and provide the **Post URL**.
+- **Views Boost:** Use the "Views" tab and provide the **Content URL**.
+- **Comment Spam:** Use the "Comments" tab, provide the **Post URL**, and the comment text.
 
-### 4. Test Follower Boosting
+### 4. Monitor and Analyze
 
-1. Click the "Follower Boost" tab
-2. Enter the target username (without @)
-3. Click "Boost Followers" to execute the attack
-4. Monitor results in the logs
-
-### 5. Test Comment Spam
-
-1. Click the "Comment Spam" tab
-2. Enter the post URL
-3. Enter the comment text to spam
-4. Click "Spam Comments" to execute the attack
-5. Check logs for results
-
-### 6. Export Results
-
-- Click "Download Accounts" to export generated accounts as JSON
-- Use the JSON file for further analysis or documentation
+- Monitor the live logs for real-time status.
+- Analyze the success rate to determine the effectiveness of your security measures.
 
 ## API Endpoints
 
@@ -138,6 +128,7 @@ GET /api/health
 ```
 POST /api/generate-accounts
 Content-Type: application/json
+X-API-Key: your-key
 
 {
   "count": 10,
@@ -146,15 +137,52 @@ Content-Type: application/json
 }
 ```
 
-### Get Generated Accounts
+### Likes Boost Attack
 ```
-GET /api/accounts
+POST /api/likes-boost
+Content-Type: application/json
+X-API-Key: your-key
+
+{
+  "postUrl": "https://tiktok.com/@user/video/12345",
+  "accountsToUse": [...],
+  "proxy": "http://user:pass@host:port" // Optional
+}
+```
+
+### Views Boost Attack
+```
+POST /api/views-boost
+Content-Type: application/json
+X-API-Key: your-key
+
+{
+  "contentUrl": "https://tiktok.com/@user/video/12345",
+  "accountsToUse": [...],
+  "proxy": "http://user:pass@host:port", // Optional
+  "viewDuration": 5000 // Optional, in ms
+}
+```
+
+### Comment Spam Attack
+```
+POST /api/comment-spam
+Content-Type: application/json
+X-API-Key: your-key
+
+{
+  "postUrl": "https://tiktok.com/@user/video/12345",
+  "commentText": "Great post!",
+  "accountsToUse": [...],
+  "proxy": "http://user:pass@host:port" // Optional
+}
 ```
 
 ### Follower Boost Attack
 ```
 POST /api/follower-boost
 Content-Type: application/json
+X-API-Key: your-key
 
 {
   "targetUsername": "username",
@@ -164,17 +192,9 @@ Content-Type: application/json
 }
 ```
 
-### Comment Spam Attack
+### Get Generated Accounts
 ```
-POST /api/comment-spam
-Content-Type: application/json
-
-{
-  "postUrl": "https://your-app.com/post/123",
-  "commentText": "Great post!",
-  "accountsToUse": [...],
-  "proxy": "http://user:pass@host:port" // Optional
-}
+GET /api/accounts
 ```
 
 ## Security Features
@@ -184,161 +204,29 @@ Content-Type: application/json
 - **Randomized Delays** - 500-2000ms between actions to mimic human behavior
 - **Mouse Movement Simulation** - Random cursor movements before interactions
 - **Dynamic User Agent Rotation** - Uses a list of up-to-date, randomized user agents
-- **Dynamic Selector Logic** - Uses robust and generic selectors to work across various platforms
+- **Dynamic Selector Logic** - Uses robust and generic selectors tailored for each platform
 - **Proxy Integration** - Supports HTTP/SOCKS proxies for distributed testing
 - **Context Isolation** - Each bot runs in isolated browser context
 
-## Understanding the Results
-
-### Log Types
-
-- **Success (Green)** - Action completed successfully
-- **Error (Red)** - Action failed with error details
-- **Info (Blue)** - General information and progress updates
-
-### Metrics to Monitor
-
-- **Total Attempted** - Number of operations initiated
-- **Total Successful** - Number of operations that completed
-- **Success Rate** - Percentage of successful operations
-- **Response Times** - How quickly your app responds to bot activity
-
 ## Interpreting Results
 
-### High Success Rate (80%+)
-Your app may be vulnerable to bot attacks. Consider implementing:
-- CAPTCHA verification
-- Rate limiting
-- Behavioral analysis
-- IP reputation checking
-
-### Medium Success Rate (40-80%)
-Your app has some bot detection. Enhance with:
-- Machine learning-based detection
-- Device fingerprinting
-- Email verification
-- Phone verification
-
-### Low Success Rate (<40%)
-Your app has strong bot detection. Continue monitoring for:
-- New attack vectors
-- Sophisticated bots
-- Distributed attacks
+| Success Rate | Interpretation | Recommended Actions |
+| :--- | :--- | :--- |
+| **80%+** | Your app is vulnerable to bot attacks. | Implement CAPTCHA, rate limiting, behavioral analysis, IP reputation checking. |
+| **40-80%** | Your app has some bot detection. | Add ML-based detection, device fingerprinting, email/phone verification. |
+| **<40%** | Your app has strong bot detection. | Continue monitoring for new attack vectors and sophisticated bots. |
 
 ## Deployment
 
-### Deploy to Heroku
-
-Backend:
-```bash
-cd backend
-heroku create your-app-name-backend
-git push heroku main
-```
-
-Frontend (Vercel):
-```bash
-cd frontend
-npm run build
-vercel deploy --prod
-```
-
-### Docker Deployment
+### Docker Deployment (Recommended)
 
 ```bash
 docker-compose up -d
 ```
 
-## Configuration
-
-### Backend Configuration
-
-Edit `backend/index.js` to customize:
-
-- `PORT` - Server port (default: 5000)
-- `randomDelay()` - Adjust delay ranges
-- `generateRandomUser()` - Customize user data generation
-- Browser launch options - Add proxy support, etc.
-
-### Frontend Configuration
-
-Edit `frontend/src/App.jsx` to customize:
-
-- `API_BASE_URL` - Backend API endpoint
-- Form fields and labels
-- Tab names and organization
-- Log display settings
-
-## Troubleshooting
-
-### "Cannot find module 'playwright'"
-```bash
-cd backend
-npm install playwright
-```
-
-### "Port 5000 already in use"
-```bash
-# Change PORT in backend/index.js or kill the process
-lsof -i :5000
-kill -9 <PID>
-```
-
-### "CORS errors in browser console"
-Ensure backend is running and CORS is enabled in backend/index.js
-
-### "Playwright browser not found"
-```bash
-npx playwright install
-```
-
-## Best Practices
-
-1. **Test in Staging** - Always test on a staging environment first
-2. **Document Results** - Keep detailed logs of all tests
-3. **Iterate** - Run tests multiple times for consistency
-4. **Analyze Patterns** - Look for trends in bot detection
-5. **Update Security** - Fix vulnerabilities and re-test
-6. **Monitor Performance** - Ensure tests don't overload your server
-
-## Contributing
-
-Contributions are welcome! Please:
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
-
 ## License
 
 This project is licensed under the MIT License - see LICENSE file for details.
-
-## Support
-
-For issues, questions, or suggestions:
-
-1. Check existing GitHub issues
-2. Create a new issue with detailed description
-3. Include error logs and steps to reproduce
-
-## Security Notes
-
-- Never use this tool on systems you don't own or have permission to test
-- Keep your deployment credentials secure
-- Use environment variables for sensitive data
-- Regularly update dependencies for security patches
-- Monitor your server logs during testing
-
-## Future Enhancements
-
-- [ ] Advanced ML-based bot detection testing
-- [ ] Video/image upload simulation
-- [ ] Rate limiting bypass techniques
-- [ ] CAPTCHA solving integration
-- [ ] Detailed analytics dashboard
-- [ ] Scheduled automated testing
-- [ ] Multi-language support
 
 ---
 
