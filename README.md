@@ -1,8 +1,8 @@
-# 🤖 Scammer Simulator - Professional Penetration Testing Tool
+# Scammer Simulator - Universal Penetration Testing Tool
 
 A comprehensive web-based security testing tool designed to simulate bot attacks and fraudulent activities on social media platforms. This tool helps developers validate and strengthen the security measures of their social media clone applications by testing against common attack vectors used by scammers.
 
-## 🎯 Purpose
+## Purpose
 
 **Scammer Simulator** is built to help developers and security teams:
 
@@ -12,39 +12,36 @@ A comprehensive web-based security testing tool designed to simulate bot attacks
 - Identify vulnerabilities in bot detection systems
 - Strengthen platform security before production deployment
 
-## ⚠️ Legal Disclaimer
+## Legal Disclaimer
 
 This tool is **strictly for authorized security testing and penetration testing purposes only**. Unauthorized access to computer systems is illegal. Users are responsible for ensuring they have proper authorization before testing any system.
 
-## 🚀 Features
+## Features
 
 ### Core Capabilities
 
 - **Fake Account Generation** - Creates realistic bot accounts with randomized data
 - **Follower Boosting Simulation** - Automates following behavior across multiple accounts
 - **Comment Spam Attacks** - Tests comment filtering and spam detection
-- **Human-Like Behavior** - Implements realistic delays, mouse movements, and user agent randomization
 - **Real-Time Logging** - Live dashboard showing all bot activities
 - **Account Management** - Download and manage generated test accounts
 
-### Technical Features
+### Advanced Anti-Detection & Universal Features (New)
 
-- Headless browser automation using Playwright
-- Realistic behavioral mimicry to evade detection
-- Multi-threaded account operations
-- CORS-enabled API for cross-origin requests
-- Professional React-based dashboard UI
-- Responsive design for desktop and mobile
+- **Universal Compatibility:** Refactored logic using dynamic and attribute-based selectors to work across different social media platforms (e.g., TikTok, Instagram, Twitter, Facebook clones).
+- **Proxy Support:** Added an input field to route traffic through a proxy (HTTP/SOCKS) to simulate distributed attacks and bypass IP-based rate limiting.
+- **Enhanced Human Mimicry:** More sophisticated randomization of typing speeds, mouse movements, scrolling, and dynamic user agent rotation to evade advanced bot detection.
+- **Robust Login Logic:** Improved generic login function to handle various form structures.
 
-## 📋 System Requirements
+## System Requirements
 
-- **Node.js** 14+ 
+- **Node.js** 14+
 - **npm** or **yarn** package manager
 - **Chromium/Chrome** browser (auto-installed by Playwright)
 - **4GB RAM** minimum
 - **Linux, macOS, or Windows** operating system
 
-## 🔧 Installation
+## Installation
 
 ### 1. Clone the Repository
 
@@ -67,7 +64,7 @@ cd ../frontend
 npm install
 ```
 
-## 🏃 Running the Application
+## Running the Application
 
 ### Start the Backend Server
 
@@ -91,7 +88,7 @@ npm run dev
 
 The frontend will start on `http://localhost:5173`
 
-## 📖 Usage Guide
+## Usage Guide
 
 ### 1. Access the Dashboard
 
@@ -100,37 +97,37 @@ Open your browser and navigate to `http://localhost:5173`
 ### 2. Configure Target App
 
 1. Enter your app's signup/login page URL in the **Target App URL** field
-2. This is the URL where the bot will attempt to create accounts
+2. **(New)** Optionally, enter a proxy server address (e.g., `http://user:pass@host:port`) in the **Proxy Server** field for distributed testing.
 
 ### 3. Generate Fake Accounts
 
-1. Click the **"Generate Accounts"** tab
+1. Click the "Generate Accounts" tab
 2. Set the number of accounts to create (1-100)
-3. Click **"Generate Accounts"** button
+3. Click "Generate Accounts" button
 4. Monitor the live logs for progress
-5. Accounts will appear in the **Generated Accounts** section
+5. Accounts will appear in the Generated Accounts section
 
 ### 4. Test Follower Boosting
 
-1. Click the **"Follower Boost"** tab
+1. Click the "Follower Boost" tab
 2. Enter the target username (without @)
-3. Click **"Boost Followers"** to execute the attack
+3. Click "Boost Followers" to execute the attack
 4. Monitor results in the logs
 
 ### 5. Test Comment Spam
 
-1. Click the **"Comment Spam"** tab
+1. Click the "Comment Spam" tab
 2. Enter the post URL
 3. Enter the comment text to spam
-4. Click **"Spam Comments"** to execute the attack
+4. Click "Spam Comments" to execute the attack
 5. Check logs for results
 
 ### 6. Export Results
 
-- Click **"Download Accounts"** to export generated accounts as JSON
+- Click "Download Accounts" to export generated accounts as JSON
 - Use the JSON file for further analysis or documentation
 
-## 🔌 API Endpoints
+## API Endpoints
 
 ### Health Check
 ```
@@ -144,7 +141,8 @@ Content-Type: application/json
 
 {
   "count": 10,
-  "targetUrl": "https://your-app.com/signup"
+  "targetUrl": "https://your-app.com/signup",
+  "proxy": "http://user:pass@host:port" // Optional
 }
 ```
 
@@ -161,13 +159,8 @@ Content-Type: application/json
 {
   "targetUsername": "username",
   "targetUrl": "https://your-app.com/login",
-  "accountsToUse": [
-    {
-      "username": "bot_user_1",
-      "email": "bot_user_1@tempmail.com",
-      "password": "Pass123456"
-    }
-  ]
+  "accountsToUse": [...],
+  "proxy": "http://user:pass@host:port" // Optional
 }
 ```
 
@@ -179,33 +172,29 @@ Content-Type: application/json
 {
   "postUrl": "https://your-app.com/post/123",
   "commentText": "Great post!",
-  "accountsToUse": [
-    {
-      "username": "bot_user_1",
-      "email": "bot_user_1@tempmail.com",
-      "password": "Pass123456"
-    }
-  ]
+  "accountsToUse": [...],
+  "proxy": "http://user:pass@host:port" // Optional
 }
 ```
 
-## 🛡️ Security Features
+## Security Features
 
 ### Anti-Detection Mechanisms
 
 - **Randomized Delays** - 500-2000ms between actions to mimic human behavior
 - **Mouse Movement Simulation** - Random cursor movements before interactions
-- **User Agent Rotation** - Realistic Chrome user agent strings
-- **Form Field Detection** - Intelligent selector matching for various field naming conventions
+- **Dynamic User Agent Rotation** - Uses a list of up-to-date, randomized user agents
+- **Dynamic Selector Logic** - Uses robust and generic selectors to work across various platforms
+- **Proxy Integration** - Supports HTTP/SOCKS proxies for distributed testing
 - **Context Isolation** - Each bot runs in isolated browser context
 
-## 📊 Understanding the Results
+## Understanding the Results
 
 ### Log Types
 
-- **✅ Success (Green)** - Action completed successfully
-- **❌ Error (Red)** - Action failed with error details
-- **ℹ️ Info (Blue)** - General information and progress updates
+- **Success (Green)** - Action completed successfully
+- **Error (Red)** - Action failed with error details
+- **Info (Blue)** - General information and progress updates
 
 ### Metrics to Monitor
 
@@ -214,7 +203,7 @@ Content-Type: application/json
 - **Success Rate** - Percentage of successful operations
 - **Response Times** - How quickly your app responds to bot activity
 
-## 🔍 Interpreting Results
+## Interpreting Results
 
 ### High Success Rate (80%+)
 Your app may be vulnerable to bot attacks. Consider implementing:
@@ -236,18 +225,18 @@ Your app has strong bot detection. Continue monitoring for:
 - Sophisticated bots
 - Distributed attacks
 
-## 🚀 Deployment
+## Deployment
 
 ### Deploy to Heroku
 
-**Backend:**
+Backend:
 ```bash
 cd backend
 heroku create your-app-name-backend
 git push heroku main
 ```
 
-**Frontend (Vercel):**
+Frontend (Vercel):
 ```bash
 cd frontend
 npm run build
@@ -260,7 +249,7 @@ vercel deploy --prod
 docker-compose up -d
 ```
 
-## 📝 Configuration
+## Configuration
 
 ### Backend Configuration
 
@@ -280,7 +269,7 @@ Edit `frontend/src/App.jsx` to customize:
 - Tab names and organization
 - Log display settings
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### "Cannot find module 'playwright'"
 ```bash
@@ -296,14 +285,14 @@ kill -9 <PID>
 ```
 
 ### "CORS errors in browser console"
-Ensure backend is running and CORS is enabled in `backend/index.js`
+Ensure backend is running and CORS is enabled in backend/index.js
 
 ### "Playwright browser not found"
 ```bash
 npx playwright install
 ```
 
-## 📚 Best Practices
+## Best Practices
 
 1. **Test in Staging** - Always test on a staging environment first
 2. **Document Results** - Keep detailed logs of all tests
@@ -312,7 +301,7 @@ npx playwright install
 5. **Update Security** - Fix vulnerabilities and re-test
 6. **Monitor Performance** - Ensure tests don't overload your server
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please:
 
@@ -321,11 +310,11 @@ Contributions are welcome! Please:
 3. Make your changes
 4. Submit a pull request
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see LICENSE file for details.
 
-## 🙋 Support
+## Support
 
 For issues, questions, or suggestions:
 
@@ -333,7 +322,7 @@ For issues, questions, or suggestions:
 2. Create a new issue with detailed description
 3. Include error logs and steps to reproduce
 
-## 🔐 Security Notes
+## Security Notes
 
 - Never use this tool on systems you don't own or have permission to test
 - Keep your deployment credentials secure
@@ -341,9 +330,8 @@ For issues, questions, or suggestions:
 - Regularly update dependencies for security patches
 - Monitor your server logs during testing
 
-## 📈 Future Enhancements
+## Future Enhancements
 
-- [ ] Proxy support for distributed testing
 - [ ] Advanced ML-based bot detection testing
 - [ ] Video/image upload simulation
 - [ ] Rate limiting bypass techniques
@@ -354,6 +342,6 @@ For issues, questions, or suggestions:
 
 ---
 
-**Built with ❤️ for security professionals and developers**
+Built with care for security professionals and developers
 
 Last Updated: October 2025
