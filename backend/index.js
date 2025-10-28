@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const { chromium } = require('playwright');
+const { URL } = require('url');
 const path = require('path');
 
 const app = express();
@@ -12,6 +13,59 @@ app.use(express.json());
 
 // Store for generated accounts
 let generatedAccounts = [];
+
+// List of common, up-to-date User Agents for better stealth
+const userAgents = [
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15',
+  'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+  'Mozilla/5.0 (iPad; CPU OS 17_5_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+];
+
+// Utility function to get a random User Agent
+function getRandomUserAgent() {
+  return userAgents[Math.floor(Math.random() * userAgents.length)];
+}
+
+// Utility function to create a profile URL based on the login URL
+function createProfileUrl(loginUrl, username) {
+  try {
+    const url = new URL(loginUrl);
+    // Generic social media profile path
+    return `${url.protocol}//${url.hostname}/profile/${username}`;
+  } catch (e) {
+    console.error("Invalid URL provided:", e);
+    return null;
+  }
+}
+
+// Generic Login Function
+async function performLogin(page, account) {
+  // Try to find and fill login form fields
+  const usernameInput = await page.$('input[name="username"]') || await page.$('input[type="email"]') || await page.$('input[placeholder*="user" i]') || await page.$('input[placeholder*="email" i]');
+  const passwordInput = await page.$('input[type="password"]') || await page.$('input[name="password"]') || await page.$('input[placeholder*="password" i]');
+
+  if (usernameInput && passwordInput) {
+    await usernameInput.click();
+    await randomDelay(200, 500);
+    await usernameInput.type(account.username, { delay: Math.random() * 100 + 50 });
+
+    await passwordInput.click();
+    await randomDelay(200, 500);
+    await passwordInput.type(account.password, { delay: Math.random() * 100 + 50 });
+
+    // Look for login button
+    const loginButton = await page.$('button[type="submit"]') || await page.$('button:has-text("Log In")') || await page.$('button:has-text("Login")') || await page.$('button[aria-label*="log in" i]');
+    if (loginButton) {
+      await loginButton.click();
+      // Wait longer after login to allow for redirects and page load
+      await randomDelay(3000, 5000);
+      return true;
+    }
+  }
+  return false;
+}
 
 // Utility function to generate random user data
 function generateRandomUser() {
@@ -47,7 +101,7 @@ app.get('/api/health', (req, res) => {
 
 // Endpoint to generate fake accounts
 app.post('/api/generate-accounts', async (req, res) => {
-  const { count, targetUrl } = req.body;
+  const { count, targetUrl, proxy } = req.body;
 
   if (!count || count < 1) {
     return res.status(400).json({ error: 'Count must be at least 1' });
@@ -61,7 +115,16 @@ app.post('/api/generate-accounts', async (req, res) => {
   const results = [];
 
   try {
-    const browser = await chromium.launch({ headless: true });
+    const launchOptions = {
+      headless: true,
+    };
+
+    if (proxy) {
+      launchOptions.proxy = { server: proxy };
+      console.log(`Using proxy: ${proxy}`);
+    }
+
+    const browser = await chromium.launch(launchOptions);
 
     for (let i = 0; i < count; i++) {
       try {
@@ -69,7 +132,7 @@ app.post('/api/generate-accounts', async (req, res) => {
         const page = await context.newPage();
 
         // Set a realistic user agent
-        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+        await page.setUserAgent(getRandomUserAgent());
 
         const userData = generateRandomUser();
         console.log(`[${i + 1}/${count}] Creating account: ${userData.username}`);
@@ -121,9 +184,11 @@ app.post('/api/generate-accounts', async (req, res) => {
           }
 
           // Look for submit button
-          const submitButton = await page.$('button[type="submit"]') || await page.$('button:has-text("Sign Up")') || await page.$('button:has-text("Register")');
+          const submitButton = await page.$('button[type="submit"]') || await page.$('button:has-text("Sign Up")') || await page.$('button:has-text("Register")') || await page.$('button[aria-label*="sign up" i]');
           
           if (submitButton) {
+            // Add a small scroll before clicking to simulate human behavior
+            await page.evaluate(() => window.scrollBy(0, 50));
             await randomDelay(500, 1000);
             await submitButton.click();
             await randomDelay(2000, 3000);
@@ -190,7 +255,7 @@ app.get('/api/accounts', (req, res) => {
 
 // Endpoint for follower boost attack
 app.post('/api/follower-boost', async (req, res) => {
-  const { targetUsername, targetUrl, accountsToUse } = req.body;
+  const { targetUsername, targetUrl, accountsToUse, proxy } = req.body;
 
   if (!targetUsername || !targetUrl || !accountsToUse || accountsToUse.length === 0) {
     return res.status(400).json({ error: 'Missing required parameters' });
@@ -199,7 +264,16 @@ app.post('/api/follower-boost', async (req, res) => {
   const results = [];
 
   try {
-    const browser = await chromium.launch({ headless: true });
+    const launchOptions = {
+      headless: true,
+    };
+
+    if (proxy) {
+      launchOptions.proxy = { server: proxy };
+      console.log(`Using proxy: ${proxy}`);
+    }
+
+    const browser = await chromium.launch(launchOptions);
 
     for (let i = 0; i < accountsToUse.length; i++) {
       try {
@@ -216,33 +290,36 @@ app.post('/api/follower-boost', async (req, res) => {
         await randomDelay(1000, 2000);
 
         // Login logic (generic)
-        const usernameInput = await page.$('input[name="username"]') || await page.$('input[type="email"]');
-        const passwordInput = await page.$('input[type="password"]');
-
-        if (usernameInput && passwordInput) {
-          await usernameInput.click();
-          await randomDelay(200, 500);
-          await usernameInput.type(account.username, { delay: Math.random() * 100 + 50 });
-
-          await passwordInput.click();
-          await randomDelay(200, 500);
-          await passwordInput.type(account.password, { delay: Math.random() * 100 + 50 });
-
-          const loginButton = await page.$('button[type="submit"]') || await page.$('button:has-text("Login")');
-          if (loginButton) {
-            await loginButton.click();
-            await randomDelay(3000, 5000);
-          }
+        const loggedIn = await performLogin(page, account);
+        if (!loggedIn) {
+          // If login fails, log it and continue to next account
+          results.push({
+            success: false,
+            account: account.username,
+            message: 'Failed to find or submit login form.'
+          });
+          await context.close();
+          continue;
         }
 
         // Navigate to target profile
-        const profileUrl = `${new URL(targetUrl).origin}/profile/${targetUsername}`;
+        const profileUrl = createProfileUrl(targetUrl, targetUsername);
+        if (!profileUrl) {
+          results.push({ success: false, account: account.username, message: 'Invalid target URL provided.' });
+          await context.close();
+          continue;
+        }
         await page.goto(profileUrl, { waitUntil: 'networkidle', timeout: 30000 });
         await randomDelay(1000, 2000);
 
         // Click follow button
-        const followButton = await page.$('button:has-text("Follow")') || await page.$('button[aria-label*="Follow"]');
+        // More robust selectors for follow button on various social media sites
+        const followButton = await page.$('button:has-text("Follow")') || 
+                             await page.$('button[aria-label*="Follow" i]') ||
+                             await page.$('button[role="button"][tabindex="0"]:has-text("Follow")');
         if (followButton) {
+          // Add a small scroll before clicking
+          await page.evaluate(() => window.scrollBy(0, 50));
           await followButton.click();
           await randomDelay(1000, 2000);
           results.push({
@@ -292,7 +369,7 @@ app.post('/api/follower-boost', async (req, res) => {
 
 // Endpoint for comment spam attack
 app.post('/api/comment-spam', async (req, res) => {
-  const { postUrl, commentText, accountsToUse } = req.body;
+  const { postUrl, commentText, accountsToUse, proxy } = req.body;
 
   if (!postUrl || !commentText || !accountsToUse || accountsToUse.length === 0) {
     return res.status(400).json({ error: 'Missing required parameters' });
@@ -301,7 +378,16 @@ app.post('/api/comment-spam', async (req, res) => {
   const results = [];
 
   try {
-    const browser = await chromium.launch({ headless: true });
+    const launchOptions = {
+      headless: true,
+    };
+
+    if (proxy) {
+      launchOptions.proxy = { server: proxy };
+      console.log(`Using proxy: ${proxy}`);
+    }
+
+    const browser = await chromium.launch(launchOptions);
 
     for (let i = 0; i < accountsToUse.length; i++) {
       try {
@@ -317,37 +403,42 @@ app.post('/api/comment-spam', async (req, res) => {
         await page.goto(postUrl, { waitUntil: 'networkidle', timeout: 30000 });
         await randomDelay(1000, 2000);
 
-        // Login if needed (generic)
-        const usernameInput = await page.$('input[name="username"]') || await page.$('input[type="email"]');
-        if (usernameInput) {
-          const passwordInput = await page.$('input[type="password"]');
-          if (passwordInput) {
-            await usernameInput.click();
-            await randomDelay(200, 500);
-            await usernameInput.type(account.username, { delay: Math.random() * 100 + 50 });
-
-            await passwordInput.click();
-            await randomDelay(200, 500);
-            await passwordInput.type(account.password, { delay: Math.random() * 100 + 50 });
-
-            const loginButton = await page.$('button[type="submit"]') || await page.$('button:has-text("Login")');
-            if (loginButton) {
-              await loginButton.click();
-              await randomDelay(3000, 5000);
-            }
+        // Check if login is required
+        const loginFormVisible = await page.$('input[type="password"]') !== null;
+        if (loginFormVisible) {
+          const loggedIn = await performLogin(page, account);
+          if (!loggedIn) {
+            results.push({
+              success: false,
+              account: account.username,
+              message: 'Failed to find or submit login form on post page.'
+            });
+            await context.close();
+            continue;
           }
         }
 
         // Find comment input
-        const commentInput = await page.$('textarea[placeholder*="comment" i]') || await page.$('input[placeholder*="comment" i]') || await page.$('[contenteditable="true"]');
+        // More robust selectors for comment input
+        const commentInput = await page.$('textarea[placeholder*="comment" i]') || 
+                             await page.$('input[placeholder*="comment" i]') || 
+                             await page.$('[contenteditable="true"]') ||
+                             await page.$('textarea[aria-label*="comment" i]');
         
         if (commentInput) {
+          // Add a small scroll before clicking
+          await page.evaluate(() => window.scrollBy(0, 50));
           await commentInput.click();
           await randomDelay(200, 500);
-          await commentInput.type(commentText, { delay: Math.random() * 50 + 25 });
+          // Introduce slight variation in comment text to avoid simple string matching
+          const finalComment = commentText + (Math.random() < 0.2 ? ` ${Math.floor(Math.random() * 99)}` : '');
+          await commentInput.type(finalComment, { delay: Math.random() * 50 + 25 });
 
           // Find and click submit button
-          const submitButton = await page.$('button:has-text("Post")') || await page.$('button:has-text("Send")') || await page.$('button[type="submit"]');
+          const submitButton = await page.$('button:has-text("Post")') || 
+                               await page.$('button:has-text("Send")') || 
+                               await page.$('button[type="submit"]') ||
+                               await page.$('button[aria-label*="post" i]');
           if (submitButton) {
             await randomDelay(500, 1000);
             await submitButton.click();

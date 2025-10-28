@@ -14,6 +14,7 @@ function App() {
   const [targetUsername, setTargetUsername] = useState('');
   const [postUrl, setPostUrl] = useState('');
   const [commentText, setCommentText] = useState('');
+  const [proxy, setProxy] = useState('');
   const logsEndRef = useRef(null);
 
   // Auto-scroll logs to bottom
@@ -27,6 +28,7 @@ function App() {
   };
 
   const handleGenerateAccounts = async () => {
+    addLog(`Using proxy: ${proxy || 'None'}`);
     if (!targetUrl) {
       addLog('❌ Target URL is required', 'error');
       return;
@@ -39,6 +41,7 @@ function App() {
       const response = await axios.post(`${API_BASE_URL}/generate-accounts`, {
         count: parseInt(accountCount),
         targetUrl: targetUrl,
+        proxy: proxy,
       });
 
       if (response.data.status === 'success') {
@@ -61,6 +64,7 @@ function App() {
   };
 
   const handleFollowerBoost = async () => {
+    addLog(`Using proxy: ${proxy || 'None'}`);
     if (!targetUsername || !targetUrl || generatedAccounts.length === 0) {
       addLog('❌ Missing parameters: Target username, URL, or generated accounts', 'error');
       return;
@@ -74,6 +78,7 @@ function App() {
         targetUsername: targetUsername,
         targetUrl: targetUrl,
         accountsToUse: generatedAccounts,
+        proxy: proxy,
       });
 
       if (response.data.status === 'success') {
@@ -94,6 +99,7 @@ function App() {
   };
 
   const handleCommentSpam = async () => {
+    addLog(`Using proxy: ${proxy || 'None'}`);
     if (!postUrl || !commentText || generatedAccounts.length === 0) {
       addLog('❌ Missing parameters: Post URL, comment text, or generated accounts', 'error');
       return;
@@ -107,6 +113,7 @@ function App() {
         postUrl: postUrl,
         commentText: commentText,
         accountsToUse: generatedAccounts,
+        proxy: proxy,
       });
 
       if (response.data.status === 'success') {
@@ -167,6 +174,18 @@ function App() {
                 disabled={isLoading}
               />
               <small>Enter the signup or login page URL of your app</small>
+            </div>
+
+            <div className="form-group">
+              <label>Proxy Server (Optional)</label>
+              <input
+                type="text"
+                placeholder="http://user:pass@host:port"
+                value={proxy}
+                onChange={(e) => setProxy(e.target.value)}
+                disabled={isLoading}
+              />
+              <small>Route traffic through a proxy for stealth</small>
             </div>
 
             {/* Tabs */}
