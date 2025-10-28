@@ -5,6 +5,17 @@ const rateLimit = require('express-rate-limit');
 const { chromium } = require('playwright');
 const { URL } = require('url');
 const path = require('path');
+const {
+  launchStealthBrowser,
+  createStealthContext,
+  moveMouseBezier,
+  typeHumanLike,
+  scrollHumanLike,
+  contextualDelay,
+  randomDelay,
+  getRandomUserAgent,
+  simulatePageInteraction,
+} = require('./stealth-utils');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -93,19 +104,7 @@ const PLATFORM_CONFIG = {
   }
 };
 
-// List of common, up-to-date User Agents for better stealth
-const userAgents = [
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15',
-  'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
-  'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
-  'Mozilla/5.0 (iPad; CPU OS 17_5_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
-];
-
-// Utility function to get a random User Agent
-function getRandomUserAgent() {
-  return userAgents[Math.floor(Math.random() * userAgents.length)];
-}
+// User agents are now imported from stealth-utils.js
 
 // Detect platform from URL
 function detectPlatform(url) {
@@ -129,19 +128,7 @@ function getPlatformConfig(platform) {
   return PLATFORM_CONFIG[platform.toLowerCase()] || null;
 }
 
-// Utility function to add realistic delays
-async function randomDelay(min = 500, max = 2000) {
-  const delay = Math.floor(Math.random() * (max - min + 1)) + min;
-  await new Promise(resolve => setTimeout(resolve, delay));
-}
-
-// Utility function to simulate mouse movements
-async function simulateMouseMovement(page) {
-  const randomX = Math.floor(Math.random() * 1920);
-  const randomY = Math.floor(Math.random() * 1080);
-  await page.mouse.move(randomX, randomY);
-  await randomDelay(100, 300);
-}
+// Delay and mouse movement functions are now in stealth-utils.js
 
 // Utility function to generate random user data
 function generateRandomUser() {
@@ -223,31 +210,28 @@ app.post('/api/generate-accounts', authenticateRequest, async (req, res) => {
   const results = [];
 
   try {
-    const launchOptions = {
-      headless: true,
-    };
+    const launchOptions = {};
 
     if (proxy) {
       launchOptions.proxy = { server: proxy };
       console.log(`Using proxy: ${proxy}`);
     }
 
-    const browser = await chromium.launch(launchOptions);
+    const browser = await launchStealthBrowser(launchOptions);
 
     for (let i = 0; i < count; i++) {
       try {
-        const context = await browser.createContext();
+        const context = await createStealthContext(browser);
         const page = await context.newPage();
-
-        await page.setUserAgent(getRandomUserAgent());
 
         const userData = generateRandomUser();
         console.log(`[${i + 1}/${count}] Creating account: ${userData.username}`);
 
         await page.goto(targetUrl, { waitUntil: 'networkidle', timeout: 30000 });
-        await randomDelay(1000, 2000);
+        await contextualDelay('page_load');
 
-        await simulateMouseMovement(page);
+        // Simulate human-like page interaction
+        await simulatePageInteraction(page);
 
         try {
           const emailInput = await page.$('input[type="email"]') || await page.$('input[name="email"]') || await page.$('input[placeholder*="email" i]');
@@ -257,33 +241,23 @@ app.post('/api/generate-accounts', authenticateRequest, async (req, res) => {
           const lastNameInput = await page.$('input[name="lastName"]') || await page.$('input[placeholder*="last" i]');
 
           if (emailInput) {
-            await emailInput.click();
-            await randomDelay(200, 500);
-            await emailInput.type(userData.email, { delay: Math.random() * 100 + 50 });
+            await typeHumanLike(page, 'input[type="email"], input[name="email"]', userData.email);
           }
 
           if (usernameInput) {
-            await usernameInput.click();
-            await randomDelay(200, 500);
-            await usernameInput.type(userData.username, { delay: Math.random() * 100 + 50 });
+            await typeHumanLike(page, 'input[name="username"], input[placeholder*="username" i]', userData.username);
           }
 
           if (passwordInput) {
-            await passwordInput.click();
-            await randomDelay(200, 500);
-            await passwordInput.type(userData.password, { delay: Math.random() * 100 + 50 });
+            await typeHumanLike(page, 'input[type="password"], input[name="password"]', userData.password);
           }
 
           if (firstNameInput) {
-            await firstNameInput.click();
-            await randomDelay(200, 500);
-            await firstNameInput.type(userData.firstName, { delay: Math.random() * 100 + 50 });
+            await typeHumanLike(page, 'input[name="firstName"], input[placeholder*="first" i]', userData.firstName);
           }
 
           if (lastNameInput) {
-            await lastNameInput.click();
-            await randomDelay(200, 500);
-            await lastNameInput.type(userData.lastName, { delay: Math.random() * 100 + 50 });
+            await typeHumanLike(page, 'input[name="lastName"], input[placeholder*="last" i]', userData.lastName);
           }
 
           const submitButton = await page.$('button[type="submit"]') || await page.$('button:has-text("Sign Up")') || await page.$('button:has-text("Register")') || await page.$('button[aria-label*="sign up" i]');

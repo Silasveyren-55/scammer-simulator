@@ -1,6 +1,6 @@
 # Scammer Simulator - Universal Penetration Testing Tool
 
-A comprehensive web-based security testing tool designed to simulate bot attacks and fraudulent activities on social media platforms. This tool helps developers validate and strengthen the security measures of their social media clone applications by testing against common attack vectors used by scammers.
+A comprehensive web-based security testing tool designed to simulate highly advanced, undetectable bot attacks and fraudulent activities on social media platforms. This tool helps developers validate and strengthen the security measures of their social media clone applications by testing against the most sophisticated attack vectors.
 
 ## Purpose
 
@@ -9,7 +9,8 @@ A comprehensive web-based security testing tool designed to simulate bot attacks
 - Test account creation security against rapid bot account generation
 - Validate follower boosting detection mechanisms
 - Assess comment spam and fake engagement filtering
-- **NEW:** Test for fake likes and views detection
+- Test for fake likes and views detection
+- **CRITICAL:** Defeat advanced browser fingerprinting and behavioral analysis systems
 - Identify vulnerabilities in bot detection systems
 - Strengthen platform security before production deployment
 
@@ -24,18 +25,22 @@ This tool is **strictly for authorized security testing and penetration testing 
 - **Fake Account Generation** - Creates realistic bot accounts with randomized data
 - **Follower Boosting Simulation** - Automates following behavior across multiple accounts
 - **Comment Spam Attacks** - Tests comment filtering and spam detection
-- **Likes Boost Attacks** - **NEW:** Simulates mass liking of posts/content
-- **Views Boost Attacks** - **NEW:** Simulates mass viewing of videos/content
+- **Likes Boost Attacks** - Simulates mass liking of posts/content
+- **Views Boost Attacks** - Simulates mass viewing of videos/content
 - **Real-Time Logging** - Live dashboard showing all bot activities
 - **Account Management** - Download and manage generated test accounts
 
 ### Advanced Anti-Detection & Universal Features
 
-- **Universal Compatibility:** Refactored logic using dynamic and attribute-based selectors to work across different social media platforms.
-- **Multi-Platform Support:** **NEW:** Targeted support for **TikTok, Instagram, Twitter/X, Facebook, and Telegram** clones.
-- **Link-Based Operation:** **NEW:** All engagement attacks (Likes, Views, Comments) require only the content link, making operation simple and professional.
-- **Proxy Support:** Added an input field to route traffic through a proxy (HTTP/SOCKS) to simulate distributed attacks and bypass IP-based rate limiting.
-- **Enhanced Human Mimicry:** More sophisticated randomization of typing speeds, mouse movements, scrolling, and dynamic user agent rotation to evade advanced bot detection.
+| Feature | Description | Impact |
+| :--- | :--- | :--- |
+| **P1: Stealth Fingerprinting Module** | **NEW:** Masks all browser fingerprints (WebGL, Canvas, AudioContext) and eliminates the "headless" signature, making the bot virtually indistinguishable from a real user's browser. | **CRITICAL** |
+| **P1: Advanced Behavioral Engine** | **NEW:** Implements non-linear mouse movements using **Bézier curves**, realistic "jitter," and contextual delays to defeat AI-driven behavioral analytics. | **CRITICAL** |
+| **Universal Compatibility** | Refactored logic using dynamic and attribute-based selectors to work robustly across different social media platforms. | **HIGH** |
+| **Multi-Platform Support** | Targeted support for **TikTok, Instagram, Twitter/X, Facebook, and Telegram** clones. | **HIGH** |
+| **Link-Based Operation** | All engagement attacks require only the content link, making operation simple and professional. | **HIGH** |
+| **Proxy Support** | Supports proxy configuration to simulate distributed attacks and bypass IP-based rate limiting. | **HIGH** |
+| **Dynamic User Agent Rotation** | Uses a list of up-to-date, randomized user agents. | **MEDIUM** |
 
 ## System Requirements
 
@@ -100,7 +105,7 @@ Open your browser and navigate to `http://localhost:5173`
 
 ### 2. Configure Target App
 
-1. **Select Platform:** Use the new dropdown to select the platform you are testing (e.g., TikTok, Instagram).
+1. **Select Platform:** Use the dropdown to select the platform you are testing (e.g., TikTok, Instagram).
 2. Enter your app's signup/login page URL in the **Target App URL** field (only required for account generation and follower boost login).
 3. **(Optional)** Enter a proxy server address (e.g., `http://user:pass@host:port`) in the **Proxy Server** field for distributed testing.
 
@@ -201,8 +206,10 @@ GET /api/accounts
 
 ### Anti-Detection Mechanisms
 
-- **Randomized Delays** - 500-2000ms between actions to mimic human behavior
-- **Mouse Movement Simulation** - Random cursor movements before interactions
+- **P1: Stealth Fingerprinting Module** - **CRITICAL**
+- **P1: Advanced Behavioral Engine** - **CRITICAL**
+- **Randomized Delays** - Contextual delays based on action type
+- **Mouse Movement Simulation** - Bézier curves and jitter
 - **Dynamic User Agent Rotation** - Uses a list of up-to-date, randomized user agents
 - **Dynamic Selector Logic** - Uses robust and generic selectors tailored for each platform
 - **Proxy Integration** - Supports HTTP/SOCKS proxies for distributed testing
