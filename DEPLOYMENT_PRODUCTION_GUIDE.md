@@ -1,6 +1,6 @@
-# Production Deployment Guide - Scammer Simulator
+# Production Deployment Guide - Sentinel Test Suite
 
-This guide provides step-by-step instructions for deploying the **Scammer Simulator** to production environments using professional hosting platforms.
+This guide provides step-by-step instructions for deploying the **Sentinel Test Suite** to production environments using professional hosting platforms.
 
 ---
 
@@ -17,7 +17,7 @@ This guide provides step-by-step instructions for deploying the **Scammer Simula
 
 ## Railway Deployment (Recommended)
 
-Railway is the easiest and most professional way to deploy the **Scammer Simulator** with automatic scaling and monitoring.
+Railway is the easiest and most professional way to deploy the **Sentinel Test Suite** with automatic scaling and monitoring.
 
 ### Prerequisites
 
@@ -32,14 +32,14 @@ Railway is the easiest and most professional way to deploy the **Scammer Simulat
 2. Click **"New Project"**
 3. Select **"Deploy from GitHub Repo"**
 4. Authorize Railway to access your GitHub account
-5. Select the **`scammer-simulator`** repository
+5. Select the **`sentinel-test-suite`** repository (Note: you may need to rename the repository on GitHub first, or manually select the existing one)
 
 #### 2. Configure Services
 
 Railway will automatically detect the `Dockerfile`s. Configure as follows:
 
 **Backend Service:**
-- **Name:** `scammer-simulator-backend`
+- **Name:** `sentinel-test-suite-backend`
 - **Build:** Automatic (uses `backend/Dockerfile`)
 - **Port:** 5000
 - **Environment Variables:**
@@ -53,7 +53,7 @@ Railway will automatically detect the `Dockerfile`s. Configure as follows:
   ```
 
 **Frontend Service:**
-- **Name:** `scammer-simulator-frontend`
+- **Name:** `sentinel-test-suite-frontend`
 - **Build:** Automatic (uses `frontend/Dockerfile`)
 - **Port:** 3000
 - **Environment Variables:**
@@ -97,8 +97,8 @@ For self-hosted environments or VPS deployments.
 ```bash
 ssh user@your-server.com
 cd /opt
-git clone https://github.com/yourusername/scammer-simulator.git
-cd scammer-simulator
+git clone https://github.com/yourusername/sentinel-test-suite.git
+cd sentinel-test-suite
 ```
 
 #### 2. Create Environment Files
@@ -137,7 +137,7 @@ docker-compose logs -f
 
 #### 4. Configure Reverse Proxy (Nginx)
 
-Create `/etc/nginx/sites-available/scammer-simulator`:
+Create `/etc/nginx/sites-available/sentinel-test-suite`:
 
 ```nginx
 upstream backend {
@@ -189,7 +189,7 @@ server {
 Enable the site:
 
 ```bash
-sudo ln -s /etc/nginx/sites-available/scammer-simulator /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/sentinel-test-suite /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl restart nginx
 ```
@@ -218,8 +218,8 @@ Using AWS ECS (Elastic Container Service) for scalable deployment.
 #### 1. Create ECR Repository
 
 ```bash
-aws ecr create-repository --repository-name scammer-simulator-backend
-aws ecr create-repository --repository-name scammer-simulator-frontend
+aws ecr create-repository --repository-name sentinel-test-suite-backend
+aws ecr create-repository --repository-name sentinel-test-suite-frontend
 ```
 
 #### 2. Push Docker Images
@@ -229,20 +229,20 @@ aws ecr create-repository --repository-name scammer-simulator-frontend
 aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin YOUR_AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com
 
 # Build and push backend
-docker build -t scammer-simulator-backend ./backend
-docker tag scammer-simulator-backend:latest YOUR_AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/scammer-simulator-backend:latest
-docker push YOUR_AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/scammer-simulator-backend:latest
+docker build -t sentinel-test-suite-backend ./backend
+docker tag sentinel-test-suite-backend:latest YOUR_AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/sentinel-test-suite-backend:latest
+docker push YOUR_AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/sentinel-test-suite-backend:latest
 
 # Build and push frontend
-docker build -t scammer-simulator-frontend ./frontend
-docker tag scammer-simulator-frontend:latest YOUR_AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/scammer-simulator-frontend:latest
-docker push YOUR_AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/scammer-simulator-frontend:latest
+docker build -t sentinel-test-suite-frontend ./frontend
+docker tag sentinel-test-suite-frontend:latest YOUR_AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/sentinel-test-suite-frontend:latest
+docker push YOUR_AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/sentinel-test-suite-frontend:latest
 ```
 
 #### 3. Create ECS Cluster
 
 ```bash
-aws ecs create-cluster --cluster-name scammer-simulator
+aws ecs create-cluster --cluster-name sentinel-test-suite
 ```
 
 #### 4. Create Task Definitions
@@ -251,7 +251,7 @@ Create `task-definition.json`:
 
 ```json
 {
-  "family": "scammer-simulator",
+  "family": "sentinel-test-suite",
   "networkMode": "awsvpc",
   "requiresCompatibilities": ["FARGATE"],
   "cpu": "1024",
@@ -259,7 +259,7 @@ Create `task-definition.json`:
   "containerDefinitions": [
     {
       "name": "backend",
-      "image": "YOUR_AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/scammer-simulator-backend:latest",
+      "image": "YOUR_AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/sentinel-test-suite-backend:latest",
       "portMappings": [
         {
           "containerPort": 5000,
@@ -284,7 +284,7 @@ Create `task-definition.json`:
     },
     {
       "name": "frontend",
-      "image": "YOUR_AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/scammer-simulator-frontend:latest",
+      "image": "YOUR_AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/sentinel-test-suite-frontend:latest",
       "portMappings": [
         {
           "containerPort": 3000,
@@ -307,9 +307,9 @@ aws ecs register-task-definition --cli-input-json file://task-definition.json
 
 ```bash
 aws ecs create-service \
-  --cluster scammer-simulator \
-  --service-name scammer-simulator-service \
-  --task-definition scammer-simulator \
+  --cluster sentinel-test-suite \
+  --service-name sentinel-test-suite-service \
+  --task-definition sentinel-test-suite \
   --desired-count 2 \
   --launch-type FARGATE \
   --network-configuration "awsvpcConfiguration={subnets=[subnet-xxx],securityGroups=[sg-xxx],assignPublicIp=ENABLED}"
@@ -333,7 +333,7 @@ Using DigitalOcean App Platform for simple deployment.
 1. Log in to DigitalOcean
 2. Click **"Create"** → **"Apps"**
 3. Select **"GitHub"** and authorize
-4. Select the **`scammer-simulator`** repository
+4. Select the **`sentinel-test-suite`** repository
 5. Click **"Next"**
 
 #### 2. Configure Services
@@ -478,6 +478,6 @@ Monitor key metrics:
 
 ## Conclusion
 
-Your **Scammer Simulator** is now deployed to production and ready for use. Monitor regularly and follow security best practices to ensure continued reliability and security.
+Your **Sentinel Test Suite** is now deployed to production and ready for use. Monitor regularly and follow security best practices to ensure continued reliability and security.
 
 **Last Updated:** October 2025

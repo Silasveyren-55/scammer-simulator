@@ -1,28 +1,30 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_KEY = 'scammer-simulator-secure-key-2025';
 
 export default function App() {
-  const [logs, setLogs] = useState([]);
-  const [generatedAccounts, setGeneratedAccounts] = useState([]);
-  const [accountCount, setAccountCount] = useState(5);
-  const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('generate');
-  const [selectedPlatform, setSelectedPlatform] = useState('tiktok');
+  const [activeTab, setActiveTab] = useState('welcome');
+  const [platform, setPlatform] = useState('tiktok');
   const [targetUrl, setTargetUrl] = useState('');
-  const [targetUsername, setTargetUsername] = useState('');
+  const [proxyServer, setProxyServer] = useState('');
+  const [accountCount, setAccountCount] = useState(5);
   const [postUrl, setPostUrl] = useState('');
-  const [contentUrl, setContentUrl] = useState('');
   const [commentText, setCommentText] = useState('');
-  const [proxy, setProxy] = useState('');
-  const [viewDuration, setViewDuration] = useState(5000);
+  const [viewDuration, setViewDuration] = useState(5);
+  const [logs, setLogs] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [generatedAccounts, setGeneratedAccounts] = useState([]);
   const logsEndRef = useRef(null);
 
-  // Auto-scroll logs to bottom
-  useEffect(() => {
+  const scrollToBottom = () => {
     logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
   }, [logs]);
 
   const addLog = (message, type = 'info') => {
@@ -31,35 +33,45 @@ export default function App() {
   };
 
   const handleGenerateAccounts = async () => {
-    addLog(`🔍 Platform: ${selectedPlatform.toUpperCase()}`);
-    addLog(`Using proxy: ${proxy || 'None'}`);
-    if (!targetUrl) {
-      addLog('❌ Target URL is required', 'error');
+    if (!targetUrl.trim()) {
+      addLog('❌ Please enter your app URL', 'error');
       return;
     }
 
     setIsLoading(true);
-    addLog(`🚀 Starting account generation... (${accountCount} accounts)`, 'info');
+    setLogs([]);
+    addLog(`🚀 Starting test account generation on ${platform}...`, 'info');
+    addLog(`📍 Target: ${targetUrl}`, 'info');
+    if (proxyServer) addLog(`🔗 Using proxy: ${proxyServer}`, 'info');
+    addLog(`📊 Creating ${accountCount} test accounts...`, 'info');
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/generate-accounts`, {
-        count: parseInt(accountCount),
-        targetUrl: targetUrl,
-        proxy: proxy,
-      }, {
-        headers: { 'X-API-Key': 'scammer-simulator-secure-key-2025' }
-      });
+      const response = await axios.post(
+        `${API_URL}/api/generate-accounts`,
+        {
+          count: accountCount,
+          targetUrl,
+          proxy: proxyServer || undefined,
+        },
+        {
+          headers: { 'X-API-Key': API_KEY },
+        }
+      );
 
-      if (response.data.status === 'success') {
-        setGeneratedAccounts(response.data.accounts);
-        addLog(`✅ Account generation complete: ${response.data.totalSuccessful}/${response.data.totalAttempted} successful`, 'success');
-        response.data.results.forEach(result => {
-          if (result.success) {
-            addLog(`✅ ${result.username} - ${result.message}`, 'success');
-          } else {
-            addLog(`❌ ${result.message}`, 'error');
-          }
-        });
+      if (response.data.results) {
+        const successCount = response.data.results.filter(r => r.success).length;
+        addLog(`✅ Successfully created ${successCount}/${accountCount} test accounts`, 'success');
+        
+        const accounts = response.data.results
+          .filter(r => r.success)
+          .map(r => ({
+            username: r.username,
+            email: r.email,
+            password: r.password,
+          }));
+        
+        setGeneratedAccounts(accounts);
+        addLog('💾 Accounts saved and ready for testing', 'success');
       }
     } catch (error) {
       addLog(`❌ Error: ${error.response?.data?.error || error.message}`, 'error');
@@ -69,35 +81,40 @@ export default function App() {
   };
 
   const handleFollowerBoost = async () => {
-    addLog(`🔍 Platform: ${selectedPlatform.toUpperCase()}`);
-    addLog(`Using proxy: ${proxy || 'None'}`);
-    if (!targetUsername || !targetUrl || generatedAccounts.length === 0) {
-      addLog('❌ Missing parameters: Target username, URL, or generated accounts', 'error');
+    if (!postUrl.trim()) {
+      addLog('❌ Please enter a username to follow', 'error');
+      return;
+    }
+
+    if (generatedAccounts.length === 0) {
+      addLog('❌ Please generate test accounts first', 'error');
       return;
     }
 
     setIsLoading(true);
-    addLog(`🚀 Starting follower boost attack on @${targetUsername}...`, 'info');
+    setLogs([]);
+    addLog(`🚀 Starting follower boost test...`, 'info');
+    addLog(`👤 Target username: ${postUrl}`, 'info');
+    addLog(`📊 Using ${generatedAccounts.length} test accounts...`, 'info');
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/follower-boost`, {
-        targetUsername: targetUsername,
-        targetUrl: targetUrl,
-        accountsToUse: generatedAccounts,
-        proxy: proxy,
-      }, {
-        headers: { 'X-API-Key': 'scammer-simulator-secure-key-2025' }
-      });
+      const response = await axios.post(
+        `${API_URL}/api/follower-boost`,
+        {
+          targetUsername: postUrl,
+          targetUrl,
+          accountsToUse: generatedAccounts,
+          proxy: proxyServer || undefined,
+        },
+        {
+          headers: { 'X-API-Key': API_KEY },
+        }
+      );
 
-      if (response.data.status === 'success') {
-        addLog(`✅ Follower boost complete: ${response.data.totalSuccessful}/${response.data.totalAttempted} successful`, 'success');
-        response.data.results.forEach(result => {
-          if (result.success) {
-            addLog(`✅ ${result.account} - ${result.action}`, 'success');
-          } else {
-            addLog(`❌ ${result.account} - ${result.message}`, 'error');
-          }
-        });
+      if (response.data.results) {
+        const successCount = response.data.results.filter(r => r.success).length;
+        addLog(`✅ Successfully followed with ${successCount}/${generatedAccounts.length} accounts`, 'success');
+        addLog('📈 Test complete. Check your app\'s security logs for detection details.', 'success');
       }
     } catch (error) {
       addLog(`❌ Error: ${error.response?.data?.error || error.message}`, 'error');
@@ -107,34 +124,39 @@ export default function App() {
   };
 
   const handleLikesBoost = async () => {
-    addLog(`🔍 Platform: ${selectedPlatform.toUpperCase()}`);
-    addLog(`Using proxy: ${proxy || 'None'}`);
-    if (!postUrl || generatedAccounts.length === 0) {
-      addLog('❌ Missing parameters: Post URL or generated accounts', 'error');
+    if (!postUrl.trim()) {
+      addLog('❌ Please enter the post/content link', 'error');
+      return;
+    }
+
+    if (generatedAccounts.length === 0) {
+      addLog('❌ Please generate test accounts first', 'error');
       return;
     }
 
     setIsLoading(true);
-    addLog(`🚀 Starting likes boost attack on post...`, 'info');
+    setLogs([]);
+    addLog(`🚀 Starting likes boost test...`, 'info');
+    addLog(`🔗 Target: ${postUrl}`, 'info');
+    addLog(`📊 Using ${generatedAccounts.length} test accounts...`, 'info');
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/likes-boost`, {
-        postUrl: postUrl,
-        accountsToUse: generatedAccounts,
-        proxy: proxy,
-      }, {
-        headers: { 'X-API-Key': 'scammer-simulator-secure-key-2025' }
-      });
+      const response = await axios.post(
+        `${API_URL}/api/likes-boost`,
+        {
+          postUrl,
+          accountsToUse: generatedAccounts,
+          proxy: proxyServer || undefined,
+        },
+        {
+          headers: { 'X-API-Key': API_KEY },
+        }
+      );
 
-      if (response.data.status === 'success') {
-        addLog(`✅ Likes boost complete on ${response.data.platform}: ${response.data.totalSuccessful}/${response.data.totalAttempted} successful`, 'success');
-        response.data.results.forEach(result => {
-          if (result.success) {
-            addLog(`✅ ${result.account} - ${result.action}`, 'success');
-          } else {
-            addLog(`❌ ${result.account} - ${result.message}`, 'error');
-          }
-        });
+      if (response.data.results) {
+        const successCount = response.data.results.filter(r => r.success).length;
+        addLog(`✅ Successfully liked with ${successCount}/${generatedAccounts.length} accounts`, 'success');
+        addLog('📈 Test complete. Review your security metrics.', 'success');
       }
     } catch (error) {
       addLog(`❌ Error: ${error.response?.data?.error || error.message}`, 'error');
@@ -144,35 +166,41 @@ export default function App() {
   };
 
   const handleViewsBoost = async () => {
-    addLog(`🔍 Platform: ${selectedPlatform.toUpperCase()}`);
-    addLog(`Using proxy: ${proxy || 'None'}`);
-    if (!contentUrl || generatedAccounts.length === 0) {
-      addLog('❌ Missing parameters: Content URL or generated accounts', 'error');
+    if (!postUrl.trim()) {
+      addLog('❌ Please enter the video/content link', 'error');
+      return;
+    }
+
+    if (generatedAccounts.length === 0) {
+      addLog('❌ Please generate test accounts first', 'error');
       return;
     }
 
     setIsLoading(true);
-    addLog(`🚀 Starting views boost attack on content...`, 'info');
+    setLogs([]);
+    addLog(`🚀 Starting views boost test...`, 'info');
+    addLog(`🔗 Target: ${postUrl}`, 'info');
+    addLog(`⏱️ View duration: ${viewDuration} seconds per account`, 'info');
+    addLog(`📊 Using ${generatedAccounts.length} test accounts...`, 'info');
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/views-boost`, {
-        contentUrl: contentUrl,
-        accountsToUse: generatedAccounts,
-        proxy: proxy,
-        viewDuration: viewDuration,
-      }, {
-        headers: { 'X-API-Key': 'scammer-simulator-secure-key-2025' }
-      });
+      const response = await axios.post(
+        `${API_URL}/api/views-boost`,
+        {
+          contentUrl: postUrl,
+          accountsToUse: generatedAccounts,
+          viewDuration: viewDuration * 1000,
+          proxy: proxyServer || undefined,
+        },
+        {
+          headers: { 'X-API-Key': API_KEY },
+        }
+      );
 
-      if (response.data.status === 'success') {
-        addLog(`✅ Views boost complete on ${response.data.platform}: ${response.data.totalSuccessful}/${response.data.totalAttempted} successful`, 'success');
-        response.data.results.forEach(result => {
-          if (result.success) {
-            addLog(`✅ ${result.account} - ${result.action}`, 'success');
-          } else {
-            addLog(`❌ ${result.account} - ${result.message}`, 'error');
-          }
-        });
+      if (response.data.results) {
+        const successCount = response.data.results.filter(r => r.success).length;
+        addLog(`✅ Successfully viewed with ${successCount}/${generatedAccounts.length} accounts`, 'success');
+        addLog('📈 Test complete. Check your analytics.', 'success');
       }
     } catch (error) {
       addLog(`❌ Error: ${error.response?.data?.error || error.message}`, 'error');
@@ -182,35 +210,46 @@ export default function App() {
   };
 
   const handleCommentSpam = async () => {
-    addLog(`🔍 Platform: ${selectedPlatform.toUpperCase()}`);
-    addLog(`Using proxy: ${proxy || 'None'}`);
-    if (!postUrl || !commentText || generatedAccounts.length === 0) {
-      addLog('❌ Missing parameters: Post URL, comment text, or generated accounts', 'error');
+    if (!postUrl.trim()) {
+      addLog('❌ Please enter the post link', 'error');
+      return;
+    }
+
+    if (!commentText.trim()) {
+      addLog('❌ Please enter comment text', 'error');
+      return;
+    }
+
+    if (generatedAccounts.length === 0) {
+      addLog('❌ Please generate test accounts first', 'error');
       return;
     }
 
     setIsLoading(true);
-    addLog(`🚀 Starting comment spam attack on post...`, 'info');
+    setLogs([]);
+    addLog(`🚀 Starting comment test...`, 'info');
+    addLog(`🔗 Target: ${postUrl}`, 'info');
+    addLog(`💬 Comment: "${commentText}"`, 'info');
+    addLog(`📊 Using ${generatedAccounts.length} test accounts...`, 'info');
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/comment-spam`, {
-        postUrl: postUrl,
-        commentText: commentText,
-        accountsToUse: generatedAccounts,
-        proxy: proxy,
-      }, {
-        headers: { 'X-API-Key': 'scammer-simulator-secure-key-2025' }
-      });
+      const response = await axios.post(
+        `${API_URL}/api/comment-spam`,
+        {
+          postUrl,
+          commentText,
+          accountsToUse: generatedAccounts,
+          proxy: proxyServer || undefined,
+        },
+        {
+          headers: { 'X-API-Key': API_KEY },
+        }
+      );
 
-      if (response.data.status === 'success') {
-        addLog(`✅ Comment spam complete on ${response.data.platform}: ${response.data.totalSuccessful}/${response.data.totalAttempted} successful`, 'success');
-        response.data.results.forEach(result => {
-          if (result.success) {
-            addLog(`✅ ${result.account} - ${result.action}`, 'success');
-          } else {
-            addLog(`❌ ${result.account} - ${result.message}`, 'error');
-          }
-        });
+      if (response.data.results) {
+        const successCount = response.data.results.filter(r => r.success).length;
+        addLog(`✅ Successfully posted ${successCount}/${generatedAccounts.length} comments`, 'success');
+        addLog('📈 Test complete. Review your content moderation.', 'success');
       }
     } catch (error) {
       addLog(`❌ Error: ${error.response?.data?.error || error.message}`, 'error');
@@ -220,304 +259,509 @@ export default function App() {
   };
 
   const downloadAccounts = () => {
-    const dataStr = JSON.stringify(generatedAccounts, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `accounts_${new Date().getTime()}.json`;
-    link.click();
-    addLog('✅ Accounts downloaded successfully', 'success');
+    const csv = [
+      ['Username', 'Email', 'Password'],
+      ...generatedAccounts.map(a => [a.username, a.email, a.password]),
+    ]
+      .map(row => row.join(','))
+      .join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'test-accounts.csv';
+    a.click();
   };
 
   return (
-    <div className="app">
-      <header className="header">
-        <h1>🎯 Scammer Simulator - Professional Security Testing Tool</h1>
-        <p>Test your social media app's security against bot attacks and fake engagement</p>
-      </header>
-
-      <div className="container">
-        {/* Configuration Panel */}
-        <div className="config-panel">
-          <h2>⚙️ Configuration</h2>
-
-          {/* Platform Selector */}
-          <div className="form-group">
-            <label>📱 Select Platform</label>
-            <select
-              value={selectedPlatform}
-              onChange={(e) => setSelectedPlatform(e.target.value)}
-              disabled={isLoading}
-              className="platform-select"
-            >
-              <option value="tiktok">TikTok</option>
-              <option value="instagram">Instagram</option>
-              <option value="twitter">Twitter/X</option>
-              <option value="facebook">Facebook</option>
-              <option value="telegram">Telegram</option>
-            </select>
-            <small>Choose the social media platform you want to test</small>
+    <div className="app-container">
+      {/* Header */}
+      <header className="app-header">
+        <div className="header-content">
+          <div className="logo-section">
+            <h1 className="app-title">🛡️ Sentinel Test Suite</h1>
+            <p className="app-subtitle">Professional Security Testing for Social Media Platforms</p>
           </div>
-
-          {/* Target URL */}
-          <div className="form-group">
-            <label>🔗 Target App URL</label>
-            <input
-              type="text"
-              placeholder="https://your-app.com/signup"
-              value={targetUrl}
-              onChange={(e) => setTargetUrl(e.target.value)}
-              disabled={isLoading}
-            />
-            <small>Enter the signup or login page URL of your app</small>
-          </div>
-
-          {/* Proxy Server */}
-          <div className="form-group">
-            <label>🌐 Proxy Server (Optional)</label>
-            <input
-              type="text"
-              placeholder="http://user:pass@host:port"
-              value={proxy}
-              onChange={(e) => setProxy(e.target.value)}
-              disabled={isLoading}
-            />
-            <small>Route traffic through a proxy for stealth and distributed testing</small>
-          </div>
-
-          {/* Account Count */}
-          <div className="form-group">
-            <label>👥 Number of Accounts to Generate</label>
-            <input
-              type="number"
-              min="1"
-              max="100"
-              value={accountCount}
-              onChange={(e) => setAccountCount(e.target.value)}
-              disabled={isLoading}
-            />
-            <small>Generate between 1 and 100 test accounts</small>
-          </div>
-
-          {/* View Duration */}
-          <div className="form-group">
-            <label>⏱️ View Duration (milliseconds)</label>
-            <input
-              type="number"
-              min="1000"
-              max="60000"
-              value={viewDuration}
-              onChange={(e) => setViewDuration(e.target.value)}
-              disabled={isLoading}
-            />
-            <small>How long each bot should view content (1000-60000ms)</small>
-          </div>
-
-          {/* Tabs */}
-          <div className="tabs">
-            <button
-              className={`tab-btn ${activeTab === 'generate' ? 'active' : ''}`}
-              onClick={() => setActiveTab('generate')}
-              disabled={isLoading}
-            >
-              👤 Generate Accounts
-            </button>
-            <button
-              className={`tab-btn ${activeTab === 'followers' ? 'active' : ''}`}
-              onClick={() => setActiveTab('followers')}
-              disabled={isLoading}
-            >
-              👥 Followers
-            </button>
-            <button
-              className={`tab-btn ${activeTab === 'likes' ? 'active' : ''}`}
-              onClick={() => setActiveTab('likes')}
-              disabled={isLoading}
-            >
-              ❤️ Likes
-            </button>
-            <button
-              className={`tab-btn ${activeTab === 'views' ? 'active' : ''}`}
-              onClick={() => setActiveTab('views')}
-              disabled={isLoading}
-            >
-              👁️ Views
-            </button>
-            <button
-              className={`tab-btn ${activeTab === 'comments' ? 'active' : ''}`}
-              onClick={() => setActiveTab('comments')}
-              disabled={isLoading}
-            >
-              💬 Comments
-            </button>
-          </div>
-
-          {/* Tab Content */}
-          <div className="tab-content">
-            {activeTab === 'generate' && (
-              <div className="tab-pane">
-                <h3>Generate Fake Accounts</h3>
-                <button
-                  className="action-btn"
-                  onClick={handleGenerateAccounts}
-                  disabled={isLoading}
-                >
-                  {isLoading ? 'Generating...' : '🚀 Generate Accounts'}
-                </button>
-              </div>
-            )}
-
-            {activeTab === 'followers' && (
-              <div className="tab-pane">
-                <h3>Follower Boost Attack</h3>
-                <div className="form-group">
-                  <label>Target Username</label>
-                  <input
-                    type="text"
-                    placeholder="username (without @)"
-                    value={targetUsername}
-                    onChange={(e) => setTargetUsername(e.target.value)}
-                    disabled={isLoading}
-                  />
-                </div>
-                <button
-                  className="action-btn"
-                  onClick={handleFollowerBoost}
-                  disabled={isLoading || generatedAccounts.length === 0}
-                >
-                  {isLoading ? 'Boosting...' : `🚀 Boost Followers (${generatedAccounts.length} accounts)`}
-                </button>
-              </div>
-            )}
-
-            {activeTab === 'likes' && (
-              <div className="tab-pane">
-                <h3>Likes Boost Attack</h3>
-                <div className="form-group">
-                  <label>Post URL (Link-Based)</label>
-                  <input
-                    type="text"
-                    placeholder="https://platform.com/post/123"
-                    value={postUrl}
-                    onChange={(e) => setPostUrl(e.target.value)}
-                    disabled={isLoading}
-                  />
-                  <small>Just provide the link to the post - platform is auto-detected</small>
-                </div>
-                <button
-                  className="action-btn"
-                  onClick={handleLikesBoost}
-                  disabled={isLoading || generatedAccounts.length === 0}
-                >
-                  {isLoading ? 'Boosting...' : `❤️ Boost Likes (${generatedAccounts.length} accounts)`}
-                </button>
-              </div>
-            )}
-
-            {activeTab === 'views' && (
-              <div className="tab-pane">
-                <h3>Views Boost Attack</h3>
-                <div className="form-group">
-                  <label>Content URL (Link-Based)</label>
-                  <input
-                    type="text"
-                    placeholder="https://platform.com/video/123"
-                    value={contentUrl}
-                    onChange={(e) => setContentUrl(e.target.value)}
-                    disabled={isLoading}
-                  />
-                  <small>Just provide the link to the content - platform is auto-detected</small>
-                </div>
-                <button
-                  className="action-btn"
-                  onClick={handleViewsBoost}
-                  disabled={isLoading || generatedAccounts.length === 0}
-                >
-                  {isLoading ? 'Boosting...' : `👁️ Boost Views (${generatedAccounts.length} accounts)`}
-                </button>
-              </div>
-            )}
-
-            {activeTab === 'comments' && (
-              <div className="tab-pane">
-                <h3>Comment Spam Attack</h3>
-                <div className="form-group">
-                  <label>Post URL (Link-Based)</label>
-                  <input
-                    type="text"
-                    placeholder="https://platform.com/post/123"
-                    value={postUrl}
-                    onChange={(e) => setPostUrl(e.target.value)}
-                    disabled={isLoading}
-                  />
-                  <small>Just provide the link to the post - platform is auto-detected</small>
-                </div>
-                <div className="form-group">
-                  <label>Comment Text</label>
-                  <textarea
-                    placeholder="Enter the comment text to spam..."
-                    value={commentText}
-                    onChange={(e) => setCommentText(e.target.value)}
-                    disabled={isLoading}
-                    rows="3"
-                  />
-                </div>
-                <button
-                  className="action-btn"
-                  onClick={handleCommentSpam}
-                  disabled={isLoading || generatedAccounts.length === 0}
-                >
-                  {isLoading ? 'Spamming...' : `💬 Spam Comments (${generatedAccounts.length} accounts)`}
-                </button>
-              </div>
-            )}
+          <div className="header-badge">
+            <span className="badge-text">Enterprise Grade</span>
           </div>
         </div>
+      </header>
 
-        {/* Logs and Accounts Section */}
-        <div className="results-panel">
-          {/* Logs */}
-          <div className="logs-section">
-            <h2>📊 Real-Time Logs</h2>
-            <div className="logs-container">
-              {logs.map((log, idx) => (
-                <div key={idx} className={`log-entry log-${log.type}`}>
-                  <span className="timestamp">{log.timestamp}</span>
-                  <span className="message">{log.message}</span>
+      {/* Main Content */}
+      <div className="main-content">
+        {/* Sidebar Navigation */}
+        <aside className="sidebar">
+          <nav className="nav-menu">
+            <button
+              className={`nav-item ${activeTab === 'welcome' ? 'active' : ''}`}
+              onClick={() => setActiveTab('welcome')}
+            >
+              📖 Getting Started
+            </button>
+            <button
+              className={`nav-item ${activeTab === 'accounts' ? 'active' : ''}`}
+              onClick={() => setActiveTab('accounts')}
+            >
+              👤 Create Test Accounts
+            </button>
+            <button
+              className={`nav-item ${activeTab === 'followers' ? 'active' : ''}`}
+              onClick={() => setActiveTab('followers')}
+            >
+              👥 Test Followers
+            </button>
+            <button
+              className={`nav-item ${activeTab === 'likes' ? 'active' : ''}`}
+              onClick={() => setActiveTab('likes')}
+            >
+              ❤️ Test Likes
+            </button>
+            <button
+              className={`nav-item ${activeTab === 'views' ? 'active' : ''}`}
+              onClick={() => setActiveTab('views')}
+            >
+              👁️ Test Views
+            </button>
+            <button
+              className={`nav-item ${activeTab === 'comments' ? 'active' : ''}`}
+              onClick={() => setActiveTab('comments')}
+            >
+              💬 Test Comments
+            </button>
+            <button
+              className={`nav-item ${activeTab === 'accounts-list' ? 'active' : ''}`}
+              onClick={() => setActiveTab('accounts-list')}
+            >
+              📋 Manage Accounts
+            </button>
+          </nav>
+        </aside>
+
+        {/* Main Panel */}
+        <main className="main-panel">
+          {/* Welcome Tab */}
+          {activeTab === 'welcome' && (
+            <div className="tab-content welcome-tab">
+              <div className="welcome-card">
+                <h2>Welcome to Sentinel Test Suite</h2>
+                <p>A professional security testing platform designed to validate your social media application's defenses against automated attacks and fraudulent activities.</p>
+              </div>
+
+              <div className="features-grid">
+                <div className="feature-card">
+                  <div className="feature-icon">🔐</div>
+                  <h3>Enterprise Security</h3>
+                  <p>Advanced anti-detection mechanisms including browser fingerprinting evasion and behavioral mimicry.</p>
                 </div>
-              ))}
-              <div ref={logsEndRef} />
-            </div>
-          </div>
+                <div className="feature-card">
+                  <div className="feature-icon">🌍</div>
+                  <h3>Multi-Platform</h3>
+                  <p>Test your security against TikTok, Instagram, Twitter, Facebook, and Telegram clones.</p>
+                </div>
+                <div className="feature-card">
+                  <div className="feature-icon">⚡</div>
+                  <h3>Fast & Efficient</h3>
+                  <p>Rapid testing with real-time monitoring and detailed logging of all activities.</p>
+                </div>
+                <div className="feature-card">
+                  <div className="feature-icon">📊</div>
+                  <h3>Detailed Reports</h3>
+                  <p>Comprehensive logs and success rates to identify security vulnerabilities.</p>
+                </div>
+              </div>
 
-          {/* Generated Accounts */}
-          {generatedAccounts.length > 0 && (
-            <div className="accounts-section">
-              <h2>👥 Generated Accounts ({generatedAccounts.length})</h2>
-              <button className="download-btn" onClick={downloadAccounts}>
-                📥 Download Accounts
-              </button>
-              <div className="accounts-list">
-                {generatedAccounts.slice(0, 5).map((account, idx) => (
-                  <div key={idx} className="account-card">
-                    <strong>{account.username}</strong>
-                    <small>{account.email}</small>
-                  </div>
-                ))}
-                {generatedAccounts.length > 5 && (
-                  <div className="account-card">
-                    <small>+{generatedAccounts.length - 5} more accounts...</small>
-                  </div>
-                )}
+              <div className="quick-start-section">
+                <h3>Quick Start Guide</h3>
+                <ol className="quick-start-steps">
+                  <li><strong>Select a Platform:</strong> Choose which social media platform you want to test (TikTok, Instagram, etc.)</li>
+                  <li><strong>Enter Your App URL:</strong> Provide the URL of your application's signup or login page</li>
+                  <li><strong>Create Test Accounts:</strong> Generate realistic test accounts to use for testing</li>
+                  <li><strong>Run Security Tests:</strong> Test followers, likes, views, and comments to see what gets through</li>
+                  <li><strong>Review Results:</strong> Check the logs to understand your security gaps</li>
+                  <li><strong>Strengthen Security:</strong> Use the results to improve your app's defenses</li>
+                </ol>
               </div>
             </div>
           )}
-        </div>
+
+          {/* Configuration Panel (shown in all test tabs) */}
+          {activeTab !== 'welcome' && activeTab !== 'accounts-list' && (
+            <div className="config-panel">
+              <div className="config-group">
+                <label htmlFor="platform">Which platform are you testing?</label>
+                <select
+                  id="platform"
+                  value={platform}
+                  onChange={(e) => setPlatform(e.target.value)}
+                  className="form-select"
+                >
+                  <option value="tiktok">TikTok</option>
+                  <option value="instagram">Instagram</option>
+                  <option value="twitter">Twitter/X</option>
+                  <option value="facebook">Facebook</option>
+                  <option value="telegram">Telegram</option>
+                </select>
+              </div>
+
+              <div className="config-group">
+                <label htmlFor="targetUrl">Your app's URL (for account creation)</label>
+                <input
+                  id="targetUrl"
+                  type="text"
+                  placeholder="e.g., https://your-app.com/signup"
+                  value={targetUrl}
+                  onChange={(e) => setTargetUrl(e.target.value)}
+                  className="form-input"
+                />
+                <small>Enter your application's signup or login page URL</small>
+              </div>
+
+              <div className="config-group">
+                <label htmlFor="proxyServer">Proxy Server (optional)</label>
+                <input
+                  id="proxyServer"
+                  type="text"
+                  placeholder="e.g., http://user:pass@proxy.com:8080"
+                  value={proxyServer}
+                  onChange={(e) => setProxyServer(e.target.value)}
+                  className="form-input"
+                />
+                <small>Leave empty to test from a single IP. Use a proxy for distributed testing.</small>
+              </div>
+            </div>
+          )}
+
+          {/* Create Test Accounts Tab */}
+          {activeTab === 'accounts' && (
+            <div className="tab-content">
+              <div className="section-header">
+                <h2>Create Test Accounts</h2>
+                <p>Generate realistic test accounts to use for security testing</p>
+              </div>
+
+              <div className="test-form">
+                <div className="form-group">
+                  <label htmlFor="accountCount">How many test accounts do you need?</label>
+                  <div className="input-with-slider">
+                    <input
+                      id="accountCount"
+                      type="number"
+                      min="1"
+                      max="100"
+                      value={accountCount}
+                      onChange={(e) => setAccountCount(Math.max(1, parseInt(e.target.value) || 1))}
+                      className="form-input"
+                    />
+                    <input
+                      type="range"
+                      min="1"
+                      max="100"
+                      value={accountCount}
+                      onChange={(e) => setAccountCount(parseInt(e.target.value))}
+                      className="form-slider"
+                    />
+                  </div>
+                  <small>Recommended: 5-10 accounts for initial testing</small>
+                </div>
+
+                <button
+                  onClick={handleGenerateAccounts}
+                  disabled={isLoading}
+                  className="btn btn-primary btn-large"
+                >
+                  {isLoading ? '⏳ Creating Accounts...' : '🚀 Create Test Accounts'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Test Followers Tab */}
+          {activeTab === 'followers' && (
+            <div className="tab-content">
+              <div className="section-header">
+                <h2>Test Follower Security</h2>
+                <p>Verify your app can detect and prevent fake follower attacks</p>
+              </div>
+
+              <div className="test-form">
+                <div className="form-group">
+                  <label htmlFor="followerUsername">Target username to follow</label>
+                  <input
+                    id="followerUsername"
+                    type="text"
+                    placeholder="e.g., @testuser or testuser"
+                    value={postUrl}
+                    onChange={(e) => setPostUrl(e.target.value)}
+                    className="form-input"
+                  />
+                  <small>Enter the username that the test accounts will follow</small>
+                </div>
+
+                <div className="info-box">
+                  <p>📊 <strong>{generatedAccounts.length}</strong> test accounts ready to use</p>
+                  {generatedAccounts.length === 0 && (
+                    <p className="warning">⚠️ Please create test accounts first</p>
+                  )}
+                </div>
+
+                <button
+                  onClick={handleFollowerBoost}
+                  disabled={isLoading || generatedAccounts.length === 0}
+                  className="btn btn-primary btn-large"
+                >
+                  {isLoading ? '⏳ Testing...' : '👥 Start Follower Test'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Test Likes Tab */}
+          {activeTab === 'likes' && (
+            <div className="tab-content">
+              <div className="section-header">
+                <h2>Test Likes Security</h2>
+                <p>Verify your app can detect and prevent fake likes</p>
+              </div>
+
+              <div className="test-form">
+                <div className="form-group">
+                  <label htmlFor="likesUrl">Link to the post you want to test</label>
+                  <input
+                    id="likesUrl"
+                    type="text"
+                    placeholder="e.g., https://your-app.com/post/12345"
+                    value={postUrl}
+                    onChange={(e) => setPostUrl(e.target.value)}
+                    className="form-input"
+                  />
+                  <small>Paste the full URL of the post or content</small>
+                </div>
+
+                <div className="info-box">
+                  <p>📊 <strong>{generatedAccounts.length}</strong> test accounts ready to use</p>
+                  {generatedAccounts.length === 0 && (
+                    <p className="warning">⚠️ Please create test accounts first</p>
+                  )}
+                </div>
+
+                <button
+                  onClick={handleLikesBoost}
+                  disabled={isLoading || generatedAccounts.length === 0}
+                  className="btn btn-primary btn-large"
+                >
+                  {isLoading ? '⏳ Testing...' : '❤️ Start Likes Test'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Test Views Tab */}
+          {activeTab === 'views' && (
+            <div className="tab-content">
+              <div className="section-header">
+                <h2>Test Views Security</h2>
+                <p>Verify your app can detect and prevent fake views</p>
+              </div>
+
+              <div className="test-form">
+                <div className="form-group">
+                  <label htmlFor="viewsUrl">Link to the video you want to test</label>
+                  <input
+                    id="viewsUrl"
+                    type="text"
+                    placeholder="e.g., https://your-app.com/video/12345"
+                    value={postUrl}
+                    onChange={(e) => setPostUrl(e.target.value)}
+                    className="form-input"
+                  />
+                  <small>Paste the full URL of the video or content</small>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="viewDuration">How long should each view last? (seconds)</label>
+                  <div className="input-with-slider">
+                    <input
+                      id="viewDuration"
+                      type="number"
+                      min="1"
+                      max="60"
+                      value={viewDuration}
+                      onChange={(e) => setViewDuration(Math.max(1, parseInt(e.target.value) || 1))}
+                      className="form-input"
+                    />
+                    <input
+                      type="range"
+                      min="1"
+                      max="60"
+                      value={viewDuration}
+                      onChange={(e) => setViewDuration(parseInt(e.target.value))}
+                      className="form-slider"
+                    />
+                  </div>
+                  <small>Recommended: 5-10 seconds for realistic viewing</small>
+                </div>
+
+                <div className="info-box">
+                  <p>📊 <strong>{generatedAccounts.length}</strong> test accounts ready to use</p>
+                  {generatedAccounts.length === 0 && (
+                    <p className="warning">⚠️ Please create test accounts first</p>
+                  )}
+                </div>
+
+                <button
+                  onClick={handleViewsBoost}
+                  disabled={isLoading || generatedAccounts.length === 0}
+                  className="btn btn-primary btn-large"
+                >
+                  {isLoading ? '⏳ Testing...' : '👁️ Start Views Test'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Test Comments Tab */}
+          {activeTab === 'comments' && (
+            <div className="tab-content">
+              <div className="section-header">
+                <h2>Test Comments Security</h2>
+                <p>Verify your app can detect and prevent spam comments</p>
+              </div>
+
+              <div className="test-form">
+                <div className="form-group">
+                  <label htmlFor="commentsUrl">Link to the post you want to test</label>
+                  <input
+                    id="commentsUrl"
+                    type="text"
+                    placeholder="e.g., https://your-app.com/post/12345"
+                    value={postUrl}
+                    onChange={(e) => setPostUrl(e.target.value)}
+                    className="form-input"
+                  />
+                  <small>Paste the full URL of the post or content</small>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="commentContent">What comment should be posted?</label>
+                  <textarea
+                    id="commentContent"
+                    placeholder="e.g., Great content! Check out my profile..."
+                    value={commentText}
+                    onChange={(e) => setCommentText(e.target.value)}
+                    className="form-textarea"
+                    rows="4"
+                  />
+                  <small>Enter the comment text that will be posted</small>
+                </div>
+
+                <div className="info-box">
+                  <p>📊 <strong>{generatedAccounts.length}</strong> test accounts ready to use</p>
+                  {generatedAccounts.length === 0 && (
+                    <p className="warning">⚠️ Please create test accounts first</p>
+                  )}
+                </div>
+
+                <button
+                  onClick={handleCommentSpam}
+                  disabled={isLoading || generatedAccounts.length === 0}
+                  className="btn btn-primary btn-large"
+                >
+                  {isLoading ? '⏳ Testing...' : '💬 Start Comments Test'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Manage Accounts Tab */}
+          {activeTab === 'accounts-list' && (
+            <div className="tab-content">
+              <div className="section-header">
+                <h2>Manage Test Accounts</h2>
+                <p>View and download your generated test accounts</p>
+              </div>
+
+              {generatedAccounts.length === 0 ? (
+                <div className="empty-state">
+                  <p>No test accounts created yet</p>
+                  <button
+                    onClick={() => setActiveTab('accounts')}
+                    className="btn btn-secondary"
+                  >
+                    Create Test Accounts
+                  </button>
+                </div>
+              ) : (
+                <div className="accounts-section">
+                  <div className="accounts-header">
+                    <h3>{generatedAccounts.length} Test Accounts</h3>
+                    <button
+                      onClick={downloadAccounts}
+                      className="btn btn-secondary"
+                    >
+                      📥 Download as CSV
+                    </button>
+                  </div>
+
+                  <div className="accounts-table">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Username</th>
+                          <th>Email</th>
+                          <th>Password</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {generatedAccounts.map((account, idx) => (
+                          <tr key={idx}>
+                            <td>{account.username}</td>
+                            <td>{account.email}</td>
+                            <td className="password-cell">
+                              <code>{account.password}</code>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Logs Panel */}
+          <div className="logs-panel">
+            <div className="logs-header">
+              <h3>📊 Test Activity Log</h3>
+              <button
+                onClick={() => setLogs([])}
+                className="btn btn-small"
+              >
+                Clear Logs
+              </button>
+            </div>
+            <div className="logs-container">
+              {logs.length === 0 ? (
+                <p className="logs-empty">Logs will appear here when you run tests</p>
+              ) : (
+                logs.map((log, idx) => (
+                  <div key={idx} className={`log-entry log-${log.type}`}>
+                    <span className="log-time">{log.timestamp}</span>
+                    <span className="log-message">{log.message}</span>
+                  </div>
+                ))
+              )}
+              <div ref={logsEndRef} />
+            </div>
+          </div>
+        </main>
       </div>
 
-      <footer className="footer">
-        <p>🔐 Secure | 🎯 Accurate | 🚀 Professional | ⚡ Fast</p>
+      {/* Footer */}
+      <footer className="app-footer">
+        <p>🛡️ Sentinel Test Suite v2.0 | Enterprise Security Testing Platform</p>
         <p>For authorized security testing only. Always test on staging environments.</p>
       </footer>
     </div>

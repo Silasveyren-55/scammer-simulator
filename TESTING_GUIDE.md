@@ -1,6 +1,6 @@
-# Comprehensive Testing Guide - Scammer Simulator
+# Comprehensive Testing Guide - Sentinel Test Suite
 
-This document provides a detailed testing protocol to validate the **Scammer Simulator** tool's functionality, security, and effectiveness. Follow these steps to ensure the tool is production-ready and performs as expected.
+This document provides a detailed testing protocol to validate the **Sentinel Test Suite** tool's functionality, security, and effectiveness. Follow these steps to ensure the tool is production-ready and performs as expected.
 
 ---
 
@@ -29,7 +29,7 @@ Open two terminal windows:
 ```bash
 cd backend
 npm start
-# Expected output: "🚀 Scammer Simulator Backend running on port 5000"
+# Expected output: "🚀 Sentinel Test Suite Backend running on port 5000"
 ```
 
 **Terminal 2 - Frontend:**
@@ -117,7 +117,7 @@ curl -s http://localhost:5000/api/health | jq .
 - Target App URL: Enter your test app's signup URL (e.g., `http://localhost:3000/signup`)
 - Number of Accounts: Set to 3
 
-**Step 3:** Click "Generate Accounts" and monitor:
+**Step 3:** Click "Create Test Accounts" and monitor:
 - ✅ Real-time logs should appear
 - ✅ Logs should show account creation progress
 - ✅ Logs should show contextual delays (page load, typing, etc.)
@@ -135,7 +135,7 @@ curl -s http://localhost:5000/api/health | jq .
 **Step 2:** Configure the test:
 - Platform: "TikTok"
 - Post URL: Enter a test post URL from your app
-- Click "Boost Likes"
+- Click "Test Likes"
 
 **Step 3:** Monitor:
 - ✅ Logs show each account attempting to like the post
@@ -152,7 +152,7 @@ curl -s http://localhost:5000/api/health | jq .
 - Platform: "Instagram"
 - Content URL: Enter a test video URL
 - View Duration: Set to 5000ms
-- Click "Boost Views"
+- Click "Test Views"
 
 **Step 2:** Monitor:
 - ✅ Logs show each account viewing the content
@@ -165,7 +165,7 @@ curl -s http://localhost:5000/api/health | jq .
 - Platform: "Twitter"
 - Post URL: Enter a test post URL
 - Comment Text: "Test comment from bot"
-- Click "Spam Comments"
+- Click "Test Comments"
 
 **Step 2:** Monitor:
 - ✅ Logs show comment posting attempts
@@ -402,6 +402,6 @@ If you encounter any issues during testing, please:
 
 ## Conclusion
 
-This comprehensive testing guide ensures the **Scammer Simulator** is production-ready, secure, and performs reliably. Follow all sections to validate the tool before deployment.
+This comprehensive testing guide ensures the **Sentinel Test Suite** is production-ready, secure, and performs reliably. Follow all sections to validate the tool before deployment.
 
 **Last Updated:** October 2025

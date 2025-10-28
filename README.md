@@ -1,15 +1,15 @@
-# Scammer Simulator - Universal Penetration Testing Tool
+# Sentinel Test Suite - Universal Security Testing Platform
 
 A comprehensive web-based security testing tool designed to simulate highly advanced, undetectable bot attacks and fraudulent activities on social media platforms. This tool helps developers validate and strengthen the security measures of their social media clone applications by testing against the most sophisticated attack vectors.
 
 ## Purpose
 
-**Scammer Simulator** is built to help developers and security teams:
+**Sentinel Test Suite** is built to help security teams and developers:
 
-- Test account creation security against rapid bot account generation
-- Validate follower boosting detection mechanisms
+- Validate account creation security against rapid bot account generation
+- Test follower boosting detection mechanisms
 - Assess comment spam and fake engagement filtering
-- Test for fake likes and views detection
+- Verify fake likes and views detection
 - **CRITICAL:** Defeat advanced browser fingerprinting and behavioral analysis systems
 - Identify vulnerabilities in bot detection systems
 - Strengthen platform security before production deployment
@@ -22,12 +22,12 @@ This tool is **strictly for authorized security testing and penetration testing 
 
 ### Core Capabilities
 
-- **Fake Account Generation** - Creates realistic bot accounts with randomized data
-- **Follower Boosting Simulation** - Automates following behavior across multiple accounts
-- **Comment Spam Attacks** - Tests comment filtering and spam detection
-- **Likes Boost Attacks** - Simulates mass liking of posts/content
-- **Views Boost Attacks** - Simulates mass viewing of videos/content
-- **Real-Time Logging** - Live dashboard showing all bot activities
+- **Test Account Generation** - Creates realistic test accounts with randomized data
+- **Follower Test Simulation** - Automates following behavior across multiple accounts
+- **Comment Spam Test** - Tests comment filtering and spam detection
+- **Likes Test** - Simulates mass liking of posts/content
+- **Views Test** - Simulates mass viewing of videos/content
+- **Real-Time Activity Log** - Live dashboard showing all test activities
 - **Account Management** - Download and manage generated test accounts
 
 ### Advanced Anti-Detection & Universal Features
@@ -38,7 +38,7 @@ This tool is **strictly for authorized security testing and penetration testing 
 | **P1: Advanced Behavioral Engine** | **NEW:** Implements non-linear mouse movements using **Bézier curves**, realistic "jitter," and contextual delays to defeat AI-driven behavioral analytics. | **CRITICAL** |
 | **Universal Compatibility** | Refactored logic using dynamic and attribute-based selectors to work robustly across different social media platforms. | **HIGH** |
 | **Multi-Platform Support** | Targeted support for **TikTok, Instagram, Twitter/X, Facebook, and Telegram** clones. | **HIGH** |
-| **Link-Based Operation** | All engagement attacks require only the content link, making operation simple and professional. | **HIGH** |
+| **Link-Based Operation** | All engagement tests require only the content link, making operation simple and professional. | **HIGH** |
 | **Proxy Support** | Supports proxy configuration to simulate distributed attacks and bypass IP-based rate limiting. | **HIGH** |
 | **Dynamic User Agent Rotation** | Uses a list of up-to-date, randomized user agents. | **MEDIUM** |
 
@@ -55,8 +55,8 @@ This tool is **strictly for authorized security testing and penetration testing 
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/scammer-simulator.git
-cd scammer-simulator
+git clone https://github.com/yourusername/sentinel-test-suite.git
+cd sentinel-test-suite
 ```
 
 ### 2. Install Backend Dependencies
@@ -106,20 +106,20 @@ Open your browser and navigate to `http://localhost:5173`
 ### 2. Configure Target App
 
 1. **Select Platform:** Use the dropdown to select the platform you are testing (e.g., TikTok, Instagram).
-2. Enter your app's signup/login page URL in the **Target App URL** field (only required for account generation and follower boost login).
+2. Enter your app's signup/login page URL in the **Target App URL** field (only required for account generation and follower test login).
 3. **(Optional)** Enter a proxy server address (e.g., `http://user:pass@host:port`) in the **Proxy Server** field for distributed testing.
 
-### 3. Launch Attacks
+### 3. Launch Tests
 
-- **Generate Accounts:** Use the "Generate Accounts" tab to create test accounts.
-- **Follower Boost:** Use the "Followers" tab with a target username.
-- **Likes Boost:** Use the "Likes" tab and provide the **Post URL**.
-- **Views Boost:** Use the "Views" tab and provide the **Content URL**.
-- **Comment Spam:** Use the "Comments" tab, provide the **Post URL**, and the comment text.
+- **Create Test Accounts:** Use the "Create Test Accounts" tab to generate test accounts.
+- **Test Followers:** Use the "Test Followers" tab with a target username.
+- **Test Likes:** Use the "Test Likes" tab and provide the **Post URL**.
+- **Test Views:** Use the "Test Views" tab and provide the **Content URL**.
+- **Test Comments:** Use the "Test Comments" tab, provide the **Post URL**, and the comment text.
 
 ### 4. Monitor and Analyze
 
-- Monitor the live logs for real-time status.
+- Monitor the live **Test Activity Log** for real-time status.
 - Analyze the success rate to determine the effectiveness of your security measures.
 
 ## API Endpoints
@@ -142,7 +142,7 @@ X-API-Key: your-key
 }
 ```
 
-### Likes Boost Attack
+### Likes Test
 ```
 POST /api/likes-boost
 Content-Type: application/json
@@ -155,7 +155,7 @@ X-API-Key: your-key
 }
 ```
 
-### Views Boost Attack
+### Views Test
 ```
 POST /api/views-boost
 Content-Type: application/json
@@ -169,7 +169,7 @@ X-API-Key: your-key
 }
 ```
 
-### Comment Spam Attack
+### Comment Spam Test
 ```
 POST /api/comment-spam
 Content-Type: application/json
@@ -183,7 +183,7 @@ X-API-Key: your-key
 }
 ```
 
-### Follower Boost Attack
+### Follower Test
 ```
 POST /api/follower-boost
 Content-Type: application/json
@@ -219,8 +219,8 @@ GET /api/accounts
 
 | Success Rate | Interpretation | Recommended Actions |
 | :--- | :--- | :--- |
-| **80%+** | Your app is vulnerable to bot attacks. | Implement CAPTCHA, rate limiting, behavioral analysis, IP reputation checking. |
-| **40-80%** | Your app has some bot detection. | Add ML-based detection, device fingerprinting, email/phone verification. |
+| **80%+** | Your app is highly vulnerable to bot attacks. | Implement CAPTCHA, rate limiting, behavioral analysis, IP reputation checking. |
+| **40-80%** | Your app has basic bot detection. | Add ML-based detection, device fingerprinting, email/phone verification. |
 | **<40%** | Your app has strong bot detection. | Continue monitoring for new attack vectors and sophisticated bots. |
 
 ## Deployment
